@@ -48,7 +48,7 @@ try {
     await page.getByRole('button', { name: '기준 시수로 초기화' }).click();
     await page.getByRole('dialog', { name: '기준 시수로 초기화' }).waitFor();
     await page.getByRole('button', { name: '초기화', exact: true }).click();
-    assert.equal(await page.getByRole('dialog').count(), 0);
+    await page.waitForFunction(() => !document.querySelector('dialog[open]'));
   });
 
   await step('달력에서 재량휴업일을 넣으면 수업일수가 줄어든다', async () => {
