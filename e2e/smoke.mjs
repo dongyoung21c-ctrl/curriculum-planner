@@ -95,7 +95,9 @@ try {
     const pdf = await pdfPage.pdf({ format: 'A4', landscape: true });
     await pdfPage.close();
     await page.getByLabel('검토할 파일').setInputFiles({ name: '편제.pdf', mimeType: 'application/pdf', buffer: pdf });
-    await page.getByText('3~4학년군 영어 20% 초과').waitFor({ timeout: 60000 });
+    const found = page.getByText('3~4학년군 영어 20% 초과');
+    await Promise.race([found.waitFor({ timeout: 60000 }), page.getByRole('alert').waitFor({ timeout: 60000 })]);
+    if (!(await found.count())) throw new Error(`PDF 검토 실패: ${await page.getByRole('alert').innerText()}`);
     assert.equal(await page.getByLabel('6학년 실과 연간 시수').inputValue(), '68');
     assert.equal(await page.getByLabel('1학년 국어 연간 시수').inputValue(), '241');
     await shot(page, '4d-review-pdf');
@@ -158,6 +160,6 @@ function sampleXlsx() {
 function sampleHtmlTable() {
   const rows = sampleRows({ 영어: [null, null, 90, 90, 102, 102] });
   const tr = (r, tag) => `<tr>${r.map((c) => `<${tag}>${c}</${tag}>`).join('')}</tr>`;
-  return `<!doctype html><meta charset="utf-8"><style>body{font-family:'Malgun Gothic',sans-serif}table{border-collapse:collapse}td,th{border:1px solid #333;padding:4px 14px;text-align:right}td:first-child{text-align:left}</style>
+  return `<!doctype html><meta charset="utf-8"><style>body{font-family:'Malgun Gothic','Noto Sans CJK KR',sans-serif}table{border-collapse:collapse}td,th{border:1px solid #333;padding:4px 14px;text-align:right}td:first-child{text-align:left}</style>
     <h1>2026학년도 교육과정 편제표</h1><table>${tr(rows[0], 'th')}${rows.slice(1).map((r) => tr(r, 'td')).join('')}</table>`;
 }
